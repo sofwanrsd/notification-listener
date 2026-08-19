@@ -41,7 +41,7 @@ const nav = [
 
 export default function DocsPage() {
   return (
-    <main className="wrap" style={{ padding: '40px 24px 0', display: 'grid', gridTemplateColumns: '210px minmax(0,1fr)', gap: 44, alignItems: 'start' }}>
+    <main className="container docs-main" style={{ padding: '40px 0 0', display: 'grid', gridTemplateColumns: '210px minmax(0,1fr)', gap: 44, alignItems: 'start' }}>
       <aside className="docs-nav">
         <div className="eyebrow" style={{ marginBottom: 12 }}>Referensi API</div>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -161,7 +161,7 @@ export default function DocsPage() {
         .docs-link { padding: 7px 10px; border-radius: 8px; color: var(--ink-soft); font-size: 14px; }
         .docs-link:hover { background: var(--brand-wash); color: var(--brand); text-decoration: none; }
         @media (max-width: 820px) {
-          main.wrap { grid-template-columns: 1fr !important; }
+          main.docs-main { grid-template-columns: 1fr !important; }
           .docs-nav { position: static; display: none; }
         }
       `}</style>

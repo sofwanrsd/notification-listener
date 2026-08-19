@@ -2,7 +2,15 @@
 
 > Unofficial QRIS payment gateway — baca notifikasi pembayaran, cocokkan via nominal unik.
 
+![License](https://img.shields.io/badge/license-MIT-blue) ![Tujuan](https://img.shields.io/badge/tujuan-edukasi-orange) ![Stack](https://img.shields.io/badge/Next.js%20%2B%20Kotlin-black)
+
+🔗 **Demo & Docs:** https://notification-listener-omega.vercel.app · [Dokumentasi API](https://notification-listener-omega.vercel.app/docs)
+
 Payment gateway sederhana untuk **menerima pembayaran QRIS ke akun DANA Bisnis kamu** tanpa API resmi — dengan cara **membaca notifikasi pembayaran** di HP Android dan mencocokkannya ke order lewat **nominal unik**.
+
+> 🎓 **Dibuat untuk edukasi.** Repo ini untuk mempelajari cara kerja payment gateway: konversi QRIS
+> statis → dinamis (tag 54 + CRC16), pencocokan nominal unik, `NotificationListenerService` di Android,
+> webhook bertanda tangan, dan deploy serverless. **Bukan produk siap-produksi.**
 
 Proyek ini khusus **DANA** (package `id.dana`, format notif "Rp<nominal> diterima DANA Bisnis").
 
@@ -101,8 +109,24 @@ Setelah dipasang, beri izin **Notification Access** untuk app, lalu pastikan
 
 ## Deploy
 
-- **Backend** → Vercel (root directory: `backend`). Tambahkan env `DATABASE_URL`, `LISTENER_API_KEY`, `CRON_SECRET`, dan opsional `MERCHANT_API_KEY`.
+- **Backend** → Vercel (root directory: `backend`). Env yang perlu diset:
+  | Env | Wajib | Fungsi |
+  |-----|-------|--------|
+  | `DATABASE_URL` | ✅ | Koneksi Neon Postgres |
+  | `LISTENER_API_KEY` | ✅ | Kunci untuk aplikasi HP (`X-API-Key`) |
+  | `QRIS_STATIC` | ✅ | QRIS statis merchant (string mentah) yang diubah jadi QR dinamis |
+  | `WEBHOOK_SECRET` | ✅ | Menandatangani webhook (HMAC) |
+  | `MERCHANT_API_KEY` | disarankan | Mengunci endpoint order (`X-Merchant-Key`). **Wajib untuk deploy publik.** |
+  | `CRON_SECRET` | opsional | Mengamankan cron pembersih expiry |
 - **Database** → Neon (bisa langsung, atau lewat Vercel Marketplace > Storage).
+
+## Keamanan
+
+- **Rahasia hanya di env.** `.env`, `NeonCredetial.txt`, `local.properties`, dan file Vercel sudah di-`.gitignore`. Jangan pernah commit kunci, `DATABASE_URL`, atau QRIS mentah.
+- **Kunci endpoint order.** Set `MERCHANT_API_KEY` di produksi supaya `POST /api/orders`, `GET /api/orders`, dan replay-webhook butuh header `X-Merchant-Key`. Tanpa ini, siapa pun yang tahu URL bisa membuat & melihat order.
+- **HP hanya membaca DANA.** Aplikasi menyaring paket notifikasi lebih dulu; isi notifikasi aplikasi lain tidak pernah dibaca atau dikirim.
+- **Verifikasi webhook.** Penerima wajib memeriksa `X-Signature` (HMAC-SHA256 dengan `WEBHOOK_SECRET`) sebelum menandai lunas.
+- **Best-effort.** Notifikasi bisa terlewat — sediakan rekonsiliasi lewat `GET /api/orders`. Untuk kebutuhan serius, gunakan QRIS Merchant resmi via PJP berlisensi.
 
 ## Kontribusi
 
@@ -111,3 +135,7 @@ Kontribusi terbuka! Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md). Proyek ini senga
 ## Lisensi
 
 [MIT](LICENSE) — bebas dipakai, fork, dan modifikasi.
+
+Proyek disediakan **apa adanya, untuk tujuan edukasi**, tanpa jaminan apa pun. Penulis tidak bertanggung
+jawab atas penyalahgunaan, kehilangan dana, pembekuan akun, atau pelanggaran ketentuan layanan pihak
+ketiga. Bukan afiliasi DANA, GoTo, atau penyedia QRIS mana pun.

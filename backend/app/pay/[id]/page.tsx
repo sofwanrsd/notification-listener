@@ -11,7 +11,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
 
   if (!order) {
     return (
-      <main className="wrap wrap-narrow" style={{ padding: '90px 24px', textAlign: 'center' }}>
+      <main className="container container-narrow" style={{ padding: '90px 24px', textAlign: 'center' }}>
         <h1 style={{ fontSize: 26 }}>Tagihan tidak ditemukan</h1>
         <p className="muted" style={{ marginTop: 8 }}>Tautannya mungkin salah atau sudah dihapus.</p>
         <a href="/" className="btn" style={{ marginTop: 20 }}>Kembali</a>
@@ -34,7 +34,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
   const prefix = formatted.slice(0, -3);
 
   return (
-    <main className="wrap wrap-narrow" style={{ padding: '48px 24px 0' }}>
+    <main className="container container-narrow" style={{ padding: '48px 24px 0' }}>
       <div className="card" style={{ overflow: 'hidden' }}>
         <div className="card-pad" style={{ textAlign: 'center', paddingBottom: 20 }}>
           <div className="eyebrow">Pembayaran QRIS</div>
