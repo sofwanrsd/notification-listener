@@ -4,7 +4,7 @@ import { fireWebhook } from './webhook';
 
 const EXPIRY_MINUTES = 10;
 const CODE_MIN = 100;
-const CODE_MAX = 999;
+const CODE_MAX = 500;
 
 export interface Order {
   id: string;
@@ -33,7 +33,7 @@ export interface CreateOrderInput {
 }
 
 /**
- * Bikin order baru dengan nominal unik (harga dasar + kode 100-999).
+ * Bikin order baru dengan nominal unik (harga dasar + kode 100-500).
  * Unique index di DB menjamin tidak ada 2 order PENDING dengan nominal sama.
  */
 export async function createOrder(input: CreateOrderInput): Promise<Order> {

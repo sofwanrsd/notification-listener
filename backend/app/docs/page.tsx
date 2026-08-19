@@ -81,7 +81,7 @@ export default function DocsPage() {
         </section>
 
         <Endpoint id="create" method="POST" path="/api/orders">
-          <p className="muted">Buat order baru. Sistem menambahkan kode unik (100 sampai 999) ke harga, membuat QRIS dinamis, dan mengembalikan QR siap tampil. Order kedaluwarsa dalam <b>10 menit</b>.</p>
+          <p className="muted">Buat order baru. Sistem menambahkan kode unik (100 sampai 500) ke harga, membuat QRIS dinamis, dan mengembalikan QR siap tampil. Order kedaluwarsa dalam <b>10 menit</b>.</p>
           <table className="tbl">
             <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
             <tbody>
