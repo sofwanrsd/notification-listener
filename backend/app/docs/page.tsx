@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Dokumentasi API — Notification Listener' };
+export const metadata: Metadata = { title: 'Dokumentasi API' };
 
 function Method({ m }: { m: 'GET' | 'POST' }) {
   return <span className={`method ${m.toLowerCase()}`}>{m}</span>;
@@ -56,8 +56,8 @@ export default function DocsPage() {
           <span className="eyebrow">Dokumentasi</span>
           <h1 style={{ fontSize: 36, marginTop: 12 }}>API Notification Listener</h1>
           <p className="muted" style={{ fontSize: 17, maxWidth: 620, marginTop: 12 }}>
-            Gateway berdiri sendiri (headless). Web utamamu memanggilnya lewat HTTP — mirip memakai
-            Midtrans/Xendit, tapi milik sendiri. Semua request &amp; response memakai <code className="inline">application/json</code>.
+            Gateway berdiri sendiri (headless). Web utamamu memanggilnya lewat HTTP, mirip memakai
+            Midtrans atau Xendit tapi milik sendiri. Semua request dan response memakai <code className="inline">application/json</code>.
           </p>
           <div className="code-block" style={{ marginTop: 18 }}>
             <span className="muted">Base URL</span>{'\n'}https://notification-listener-omega.vercel.app
@@ -81,7 +81,7 @@ export default function DocsPage() {
         </section>
 
         <Endpoint id="create" method="POST" path="/api/orders">
-          <p className="muted">Buat order baru. Sistem menambahkan kode unik (100–999) ke harga, membuat QRIS dinamis, dan mengembalikan QR siap tampil. Order kedaluwarsa dalam <b>10 menit</b>.</p>
+          <p className="muted">Buat order baru. Sistem menambahkan kode unik (100 sampai 999) ke harga, membuat QRIS dinamis, dan mengembalikan QR siap tampil. Order kedaluwarsa dalam <b>10 menit</b>.</p>
           <table className="tbl">
             <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
             <tbody>
@@ -103,7 +103,7 @@ export default function DocsPage() {
         </Endpoint>
 
         <Endpoint id="status" method="GET" path="/api/orders/:id">
-          <p className="muted">Cek status sebuah order. Cocok untuk polling tiap 3–5 detik.</p>
+          <p className="muted">Cek status sebuah order. Cocok untuk polling tiap 3 sampai 5 detik.</p>
           <div className="code-block">
             <span className="muted">200 OK</span>{'\n'}
             {'{'} <span className="k">"orderId"</span>: <span className="s">"uuid"</span>, <span className="k">"amount"</span>: 50347, <span className="k">"status"</span>: <span className="s">"PAID"</span>, <span className="k">"paidAt"</span>: <span className="s">"…"</span> {'}'}
@@ -120,7 +120,7 @@ export default function DocsPage() {
         </Endpoint>
 
         <Endpoint id="replay" method="POST" path="/api/orders/:id/replay-webhook">
-          <p className="muted">Kirim ulang webhook <code className="inline">order.paid</code> untuk order yang sudah <b>PAID</b> dan punya <code className="inline">callbackUrl</code> — berguna bila web utama sempat down.</p>
+          <p className="muted">Kirim ulang webhook <code className="inline">order.paid</code> untuk order yang sudah <b>PAID</b> dan punya <code className="inline">callbackUrl</code>, berguna bila web utama sempat down.</p>
           <div className="code-block"><span className="muted">200 OK</span>{'\n'}{'{'} <span className="k">"ok"</span>: true, <span className="k">"callbackStatus"</span>: <span className="s">"SENT"</span> {'}'}</div>
         </Endpoint>
 
@@ -158,7 +158,7 @@ export default function DocsPage() {
 
       <style>{`
         .docs-nav { position: sticky; top: 84px; }
-        .docs-link { padding: 7px 10px; border-radius: 8px; color: var(--ink-soft); font-size: 14px; }
+        .docs-link { padding: 7px 10px; border-radius: 8px; color: var(--text-soft); font-size: 14px; }
         .docs-link:hover { background: var(--brand-wash); color: var(--brand); text-decoration: none; }
         @media (max-width: 820px) {
           main.docs-main { grid-template-columns: 1fr !important; }

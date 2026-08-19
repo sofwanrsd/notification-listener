@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { IconCheck, IconClock } from '../../icons';
 
 type Status = 'PENDING' | 'PAID' | 'EXPIRED';
 const TOTAL_SECONDS = 10 * 60;
@@ -52,9 +53,9 @@ export default function PayStatus({
 
   // Divider "struk" berlubang di kedua sisi
   const perforation = (
-    <div style={{ position: 'relative', height: 1, background: 'transparent', borderTop: '2px dashed var(--line-strong)' }}>
-      <span style={{ position: 'absolute', left: -12, top: -11, width: 20, height: 20, borderRadius: '50%', background: 'var(--canvas)' }} />
-      <span style={{ position: 'absolute', right: -12, top: -11, width: 20, height: 20, borderRadius: '50%', background: 'var(--canvas)' }} />
+    <div style={{ position: 'relative', height: 1, background: 'transparent', borderTop: '2px dashed var(--border-strong)' }}>
+      <span style={{ position: 'absolute', left: -12, top: -11, width: 20, height: 20, borderRadius: '50%', background: 'var(--bg)' }} />
+      <span style={{ position: 'absolute', right: -12, top: -11, width: 20, height: 20, borderRadius: '50%', background: 'var(--bg)' }} />
     </div>
   );
 
@@ -63,7 +64,7 @@ export default function PayStatus({
       <>
         {perforation}
         <div className="card-pad" style={{ textAlign: 'center', padding: '40px 24px' }}>
-          <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'var(--success-soft)', color: 'var(--success)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', fontSize: 34 }}>✓</div>
+          <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'var(--success-soft)', color: 'var(--success)', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}><IconCheck size={32} /></div>
           <h2 style={{ fontSize: 22, color: 'var(--success)' }}>Pembayaran berhasil</h2>
           <p className="muted" style={{ marginTop: 8, marginBottom: 0 }}>Terima kasih! Pesananmu sudah lunas.</p>
         </div>
@@ -76,7 +77,7 @@ export default function PayStatus({
       <>
         {perforation}
         <div className="card-pad" style={{ textAlign: 'center', padding: '40px 24px' }}>
-          <div style={{ width: 68, height: 68, borderRadius: '50%', background: '#f1f2f6', color: 'var(--muted)', display: 'grid', placeItems: 'center', margin: '0 auto 16px', fontSize: 30 }}>⏱</div>
+          <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'var(--surface-2)', color: 'var(--muted)', display: 'grid', placeItems: 'center', margin: '0 auto 16px' }}><IconClock size={30} /></div>
           <h2 style={{ fontSize: 22 }}>Waktu pembayaran habis</h2>
           <p className="muted" style={{ marginTop: 8 }}>Tagihan ini kedaluwarsa. Buat tagihan baru untuk mencoba lagi.</p>
           <a href="/" className="btn" style={{ marginTop: 8 }}>Buat tagihan baru</a>
@@ -90,7 +91,7 @@ export default function PayStatus({
       {perforation}
       <div className="card-pad" style={{ textAlign: 'center', paddingTop: 26 }}>
         {qrImage ? (
-          <div style={{ display: 'inline-block', padding: 14, background: '#fff', border: '1px solid var(--line)', borderRadius: 16, boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'inline-block', padding: 14, background: '#fff', border: '1px solid var(--border)', borderRadius: 16 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={qrImage} alt="Kode QRIS untuk pembayaran" width={230} height={230} style={{ display: 'block' }} />
           </div>
@@ -101,7 +102,7 @@ export default function PayStatus({
         <div style={{ marginTop: 22 }}>
           <div className="live" style={{ justifyContent: 'center' }}><span className="dot" />Menunggu pembayaran</div>
           <div className="mono" style={{ fontSize: 26, fontWeight: 600, marginTop: 8, letterSpacing: '0.04em' }}>{mm}:{ss}</div>
-          <div style={{ height: 6, background: 'var(--line)', borderRadius: 999, marginTop: 12, overflow: 'hidden' }}>
+          <div style={{ height: 6, background: 'var(--border)', borderRadius: 999, marginTop: 12, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${pct}%`, background: 'var(--brand-grad)', borderRadius: 999, transition: 'width 1s linear' }} />
           </div>
           <p className="muted" style={{ fontSize: 12.5, marginTop: 12, marginBottom: 0 }}>

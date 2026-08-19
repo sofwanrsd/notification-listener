@@ -38,7 +38,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
       <div className="card" style={{ overflow: 'hidden' }}>
         <div className="card-pad" style={{ textAlign: 'center', paddingBottom: 20 }}>
           <div className="eyebrow">Pembayaran QRIS</div>
-          {order.note && <div style={{ marginTop: 10, color: 'var(--ink-soft)', fontSize: 15 }}>{order.note}</div>}
+          {order.note && <div style={{ marginTop: 10, color: 'var(--text-soft)', fontSize: 15 }}>{order.note}</div>}
           <div className="amount" style={{ fontSize: 42, fontWeight: 600, marginTop: 12, letterSpacing: '-0.02em' }}>
             <span className="rp" style={{ fontSize: 24 }}>Rp</span>{prefix}<span className="code">{code}</span>
           </div>
