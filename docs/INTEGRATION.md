@@ -5,7 +5,21 @@ mirip memakai Midtrans/Xendit tapi milik sendiri.
 
 Base URL gateway: `https://<gateway>.vercel.app`
 
+> **Provider:** gateway saat ini **hanya** mendukung **DANA** (`dana_bisnis`).
+
 Ada 2 cara integrasi. Boleh dipakai bersamaan (webhook + polling sebagai cadangan).
+
+---
+
+## Auth Merchant (opsional)
+
+Endpoint order dilindungi **opsional** lewat env `MERCHANT_API_KEY` di sisi gateway:
+
+- Bila diset, setiap request ke `POST /api/orders`, `GET /api/orders`, dan
+  `POST /api/orders/:id/replay-webhook` WAJIB membawa header `X-Merchant-Key: <MERCHANT_API_KEY>`.
+- Bila kosong, endpoint terbuka tanpa auth (praktis untuk development/demo lokal).
+
+Simpan `MERCHANT_API_KEY` hanya di server web utama — jangan di frontend/browser.
 
 ---
 
@@ -33,6 +47,7 @@ Web utama (web utama)                Gateway                         Customer
 ```http
 POST /api/orders
 Content-Type: application/json
+X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
 
 {
   "amount": 50000,
@@ -98,7 +113,9 @@ export function verify(rawBody: string, signature: string, secret: string): bool
 
 Jika valid → tandai invoice web utama LUNAS. Balas `200 OK`.
 
-> Webhook bersifat best-effort (1x kirim). Jadikan **polling (Opsi B)** sebagai jaring pengaman.
+> Gateway mencoba mengirim webhook **hingga 3x** dengan backoff singkat sebelum menandai
+> `callbackStatus = FAILED`. Meski begitu, tetap jadikan **polling (Opsi B)** sebagai jaring pengaman.
+> Bila webhook gagal terkirim, kamu bisa mengirim ulang manual lewat **replay** (lihat di bawah).
 
 ---
 
@@ -115,6 +132,31 @@ GET /api/orders/{orderId}
 ```
 
 `status`: `PENDING` | `PAID` | `EXPIRED`. Polling tiap 3–5 detik sampai berubah.
+
+---
+
+## Rekonsiliasi & replay webhook
+
+Untuk audit/rekonsiliasi, ambil daftar order terakhir:
+
+```http
+GET /api/orders
+X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
+```
+
+Mengembalikan hingga 100 order terakhir (`id`, `amount`, `baseAmount`, `status`,
+`provider`, `createdAt`, `expiresAt`, `paidAt`, `callbackStatus`).
+
+Bila sebuah order sudah `PAID` tapi `callbackStatus = FAILED` (mis. web utama sempat down),
+kirim ulang webhook-nya:
+
+```http
+POST /api/orders/{orderId}/replay-webhook
+X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
+```
+
+Respons `200`: `{ "ok": true, "callbackStatus": "SENT" }`. Error `400` bila order belum
+`PAID` atau tidak punya `callbackUrl`, `404` bila order tidak ditemukan.
 
 ---
 

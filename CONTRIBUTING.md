@@ -16,19 +16,19 @@ Terima kasih sudah tertarik! Kontribusi terbuka untuk siapa saja.
 - Jaga gaya kode konsisten dengan yang ada.
 - Untuk perubahan besar, buka **Issue** dulu untuk diskusi.
 
-## Menambah provider baru (mis. OVO, ShopeePay, SeaBank)
+## Fokus proyek: DANA saja
 
-Cukup 2 langkah:
+Proyek ini **sengaja hanya mendukung DANA** (package `id.dana`, format notif
+"Rp<nominal> diterima DANA Bisnis"). Ini menjaga parser notif dan alur pencocokan
+tetap sederhana dan andal.
 
-1. **Backend** — tambah entri di `backend/lib/providers.ts`:
-   ```ts
-   { id: 'ovo', displayName: 'OVO', androidPackage: 'club.ovo.app' }
-   ```
-2. **Android** — tambah entri di `android/app/src/main/java/com/danagateway/listener/Providers.kt`
-   dengan `packageName` dan `incomingKeywords` yang sesuai. Verifikasi `packageName`
-   lewat mode debug (lihat `android/README.md`).
+- Kontribusi yang paling diterima: **perbaikan bug**, **keandalan** (mis. foreground
+  service, autostart), **dokumentasi**, dan **peningkatan parser notif DANA**.
+- **Menambah provider lain** (OVO, ShopeePay, GoPay, dll) **di luar cakupan** saat ini.
+  Bila kamu punya alasan kuat, **buka Issue dulu** untuk diskusi sebelum mengirim PR.
 
-Bila format nominal provider tidak standar, sesuaikan `AmountParser`.
+Bila format notif DANA berubah, sesuaikan parser nominal dan sertakan contoh teks
+notif (tanpa data pribadi/kredensial) di PR agar mudah diverifikasi.
 
 ## Struktur proyek
 

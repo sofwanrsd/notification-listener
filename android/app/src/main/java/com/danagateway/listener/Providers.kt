@@ -22,25 +22,12 @@ object Providers {
     val ALL: List<Provider> = listOf(
         // TERVERIFIKASI dari HP: notif "Pembayaran Masuk" / "Rp1.000 diterima DANA Bisnis."
         // Pola "Rp<nominal> diterima" hanya cocok untuk notif PENERIMA, bukan notif pembayar.
+        // Aplikasi ini fokus HANYA ke DANA (single-provider).
         Provider(
             id = "dana_bisnis",
-            displayName = "DANA Bisnis",
+            displayName = "DANA",
             packageNames = listOf("id.dana"),
             paymentPattern = Regex("""(?i)Rp\.?\s*([0-9][0-9.,]*)\s+diterima"""),
-        ),
-        // TERVERIFIKASI (repo qrishook): "Pembayaran QRIS sebesar Rp <n> ... telah diterima"
-        Provider(
-            id = "interactive_qris",
-            displayName = "InterActive QRIS",
-            packageNames = listOf("com.interactive.qrisid"),
-            paymentPattern = Regex("""(?i)\bPembayaran\s+QRIS\s+sebesar\s+Rp\.?\s*([0-9][0-9.,]*)"""),
-        ),
-        // BELUM terverifikasi — cek via mode debug lalu isi paymentPattern seperti di atas.
-        Provider(
-            id = "gopay_merchant",
-            displayName = "GoPay Merchant",
-            packageNames = listOf("com.gojek.gopaymerchant"),
-            incomingKeywords = listOf("pembayaran", "menerima", "masuk", "berhasil", "diterima", "terima"),
         ),
     )
 

@@ -145,8 +145,8 @@ export async function ingestNotif(params: {
   return { duplicate: false, matched: !!order, orderId: order?.id ?? null };
 }
 
-/** Kirim webhook "PAID" ke web utama dan catat statusnya. */
-async function notifyMainWeb(order: Order): Promise<void> {
+/** Kirim webhook "PAID" ke web utama dan catat statusnya. Return true bila terkirim. */
+export async function notifyMainWeb(order: Order): Promise<boolean> {
   const ok = await fireWebhook(order.callback_url as string, {
     event: 'order.paid',
     orderId: order.id,
@@ -159,4 +159,36 @@ async function notifyMainWeb(order: Order): Promise<void> {
     paidAt: order.paid_at,
   });
   await sql`update orders set callback_status = ${ok ? 'SENT' : 'FAILED'} where id = ${order.id}`;
+  return ok;
+}
+
+/** Ambil daftar order terbaru (untuk rekonsiliasi/dashboard). */
+export async function listOrders(limit = 100): Promise<Order[]> {
+  return (await sql`
+    select * from orders
+     order by created_at desc
+     limit ${limit}
+  `) as Order[];
+}
+
+export interface ReplayResult {
+  ok: boolean;
+  callbackStatus: string;
+}
+
+/**
+ * Kirim ulang webhook untuk order yang sudah PAID & punya callback_url.
+ * Return null bila order tidak ada; throw error deskriptif bila belum PAID / tanpa callback_url.
+ */
+export async function replayWebhook(id: string): Promise<ReplayResult | null> {
+  const order = await getOrder(id);
+  if (!order) return null;
+  if (order.status !== 'PAID') {
+    throw new Error('Order belum PAID; webhook hanya bisa di-replay untuk order lunas');
+  }
+  if (!order.callback_url) {
+    throw new Error('Order tidak punya callback_url');
+  }
+  const ok = await notifyMainWeb(order);
+  return { ok, callbackStatus: ok ? 'SENT' : 'FAILED' };
 }

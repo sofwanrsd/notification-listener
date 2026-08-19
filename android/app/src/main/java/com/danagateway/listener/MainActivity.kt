@@ -1,7 +1,10 @@
 package com.danagateway.listener
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings as AndroidSettings
 import android.widget.ArrayAdapter
@@ -11,7 +14,9 @@ import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,9 +27,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
     private lateinit var debugLog: TextView
 
+    // Izin notifikasi (Android 13+) supaya notifikasi foreground service bisa tampil.
+    private val notifPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* abaikan hasil */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        requestNotificationPermission()
 
         serverUrl = findViewById(R.id.serverUrl)
         apiKey = findViewById(R.id.apiKey)
@@ -59,6 +70,20 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         updateStatus()
         refreshLog()
+        // Bila sudah dikonfigurasi, pastikan foreground service jalan menjaga listener hidup.
+        if (isConfigured()) ListenerForegroundService.start(this)
+    }
+
+    private fun isConfigured(): Boolean =
+        Settings.serverUrl(this).isNotBlank() && Settings.apiKey(this).isNotBlank()
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            notifPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun saveSettings() {
@@ -72,6 +97,8 @@ class MainActivity : AppCompatActivity() {
         )
         Toast.makeText(this, "Tersimpan", Toast.LENGTH_SHORT).show()
         updateStatus()
+        // Setelah konfigurasi disimpan, nyalakan foreground service penjaga listener.
+        if (isConfigured()) ListenerForegroundService.start(this)
     }
 
     private fun updateStatus() {

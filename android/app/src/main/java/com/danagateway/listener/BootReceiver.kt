@@ -23,6 +23,9 @@ class BootReceiver : BroadcastReceiver() {
                 NotificationListenerService.requestRebind(
                     ComponentName(context, PaymentNotificationListener::class.java),
                 )
+                // BOOT_COMPLETED adalah pengecualian yang diizinkan untuk memulai FGS.
+                // Foreground service menjaga proses tetap hidup di ROM agresif.
+                ListenerForegroundService.start(context)
             }
         }
     }

@@ -2,10 +2,12 @@
 
 > Unofficial QRIS payment gateway — baca notifikasi pembayaran, cocokkan via nominal unik.
 
-Payment gateway sederhana untuk **menerima pembayaran QRIS ke e-wallet pribadi/bisnis kamu** (DANA, GoPay, dll) tanpa API resmi — dengan cara **membaca notifikasi pembayaran** di HP Android dan mencocokkannya ke order lewat **nominal unik**.
+Payment gateway sederhana untuk **menerima pembayaran QRIS ke akun DANA Bisnis kamu** tanpa API resmi — dengan cara **membaca notifikasi pembayaran** di HP Android dan mencocokkannya ke order lewat **nominal unik**.
+
+Proyek ini khusus **DANA** (package `id.dana`, format notif "Rp<nominal> diterima DANA Bisnis").
 
 > ⚠️ **Disclaimer**
-> Proyek ini **tidak berafiliasi** dengan DANA, GoPay, GoTo, atau penyedia QRIS mana pun.
+> Proyek ini **tidak berafiliasi** dengan DANA atau penyedia QRIS mana pun.
 > Ini adalah alat **unofficial** yang hanya membaca notifikasi di HP kamu sendiri.
 > Menggunakan akun e-wallet pribadi sebagai gateway pembayaran dapat melanggar Ketentuan Layanan penyedia dan berisiko akun dibekukan. Gunakan atas risiko sendiri, untuk skala kecil/sementara. Untuk kebutuhan serius, gunakan **QRIS Merchant resmi** melalui PJP berlisensi.
 
@@ -16,7 +18,7 @@ Payment gateway sederhana untuk **menerima pembayaran QRIS ke e-wallet pribadi/b
 2. Server generate nominal unik → Rp50.347  (347 = kode unik)
    + ubah QRIS STATIS kamu jadi QRIS DINAMIS ber-nominal Rp50.347
 3. Customer scan QR → nominal sudah terisi otomatis, tinggal bayar
-4. E-wallet kasih notifikasi "pembayaran masuk Rp50.347"
+4. DANA kasih notifikasi "Rp50.347 diterima DANA Bisnis"
 5. App Android membaca notif → kirim nominal ke server
 6. Server cocokkan 50347 → order → tandai LUNAS ✅
 ```
@@ -25,7 +27,8 @@ Payment gateway sederhana untuk **menerima pembayaran QRIS ke e-wallet pribadi/b
 - **Nominal unik** → tiap order punya nominal berbeda, jadi mudah dicocokkan.
 - **Expiry 10 menit** → order tak dibayar otomatis batal, kode dilepas.
 - **Idempotent** → notif dobel tidak melunasi order dua kali.
-- **Multi-provider (on/off)** → dukung DANA Bisnis, GoPay Merchant, dll; aktifkan satu sebagai backup satu sama lain.
+- **DANA Bisnis** → membaca notifikasi dari app DANA (package `id.dana`) dengan format "Rp<nominal> diterima DANA Bisnis".
+- **Foreground service** → app Android berjalan sebagai foreground service agar tetap hidup di background. Di HP Infinix/Tecno/itel (XOS) aktifkan juga **Autostart** untuk app ini agar service tidak dimatikan sistem.
 
 ## Struktur Repo
 
@@ -60,32 +63,50 @@ Uji cepat:
 
 ```bash
 # buat order
+# X-Merchant-Key opsional: hanya perlu jika MERCHANT_API_KEY di-set di server
 curl -X POST http://localhost:3000/api/orders \
-  -H "Content-Type: application/json" -d '{ "amount": 50000 }'
+  -H "Content-Type: application/json" -H "X-Merchant-Key: <MERCHANT_API_KEY>" \
+  -d '{ "amount": 50000 }'
 
 # simulasikan notif dari HP (pakai amount dari respons di atas)
 curl -X POST http://localhost:3000/api/notif \
   -H "Content-Type: application/json" -H "X-API-Key: <LISTENER_API_KEY>" \
-  -d '{ "amount": 50347, "provider": "dana_bisnis" }'
+  -d '{ "amount": 50347, "provider": "dana" }'
 ```
 
 Buka halaman:
 - `http://localhost:3000` — form buat order (demo/admin)
 - `http://localhost:3000/pay/<orderId>` — halaman checkout (QR + hitung mundur + status realtime)
 
+> **Auth order (opsional)** — `POST /api/orders` mendukung header `X-Merchant-Key`.
+> Set env `MERCHANT_API_KEY` di server untuk mewajibkan header ini saat membuat order.
+> Bila `MERCHANT_API_KEY` kosong, endpoint tetap terbuka (mode demo).
+
 Dokumentasi endpoint lengkap: [`docs/API.md`](docs/API.md).
 Menghubungkan ke web utama Anda (toko online / kasir): [`docs/INTEGRATION.md`](docs/INTEGRATION.md).
 
+## Quick Start (Android)
+
+Prasyarat: **JDK 17** dan Android SDK. Gradle wrapper sudah tersedia di repo.
+
+```bash
+cd android
+./gradlew assembleDebug
+# APK: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Setelah dipasang, beri izin **Notification Access** untuk app, lalu pastikan
+**foreground service** berjalan. Di HP Infinix/Tecno/itel (XOS) aktifkan juga
+**Autostart** untuk app ini agar service tidak dimatikan sistem.
+
 ## Deploy
 
-- **Backend** → Vercel (root directory: `backend`). Tambahkan env `DATABASE_URL`, `LISTENER_API_KEY`, `CRON_SECRET`.
+- **Backend** → Vercel (root directory: `backend`). Tambahkan env `DATABASE_URL`, `LISTENER_API_KEY`, `CRON_SECRET`, dan opsional `MERCHANT_API_KEY`.
 - **Database** → Neon (bisa langsung, atau lewat Vercel Marketplace > Storage).
 
 ## Kontribusi
 
-Kontribusi terbuka! Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md). Menambah provider baru cukup:
-1. Tambah entri di `backend/lib/providers.ts`.
-2. Buat parser notif di sisi Android.
+Kontribusi terbuka! Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md). Proyek ini sengaja **fokus DANA saja** — perbaikan bug, keandalan, dan dokumentasi sangat diterima. Untuk ide di luar cakupan DANA, buka **Issue** dulu untuk diskusi.
 
 ## Lisensi
 

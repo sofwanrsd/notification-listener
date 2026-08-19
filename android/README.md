@@ -1,6 +1,14 @@
-# Android Listener — DANA Gateway
+# Android Listener — Notification Listener
 
 Aplikasi Android (Kotlin) yang membaca notifikasi pembayaran masuk dan mengirim nominalnya ke backend untuk dicocokkan dengan order.
+
+> **Fokus DANA saja.** Versi ini hanya mendukung satu provider: **DANA** (`id.dana`),
+> dengan pola notif terverifikasi `Rp<nominal> diterima`. Provider lain sudah dihapus.
+>
+> **Foreground service** menjaga proses tetap hidup: sebuah notifikasi persisten
+> berprioritas rendah ("Notification Listener aktif") membuat sistem enggan mematikan
+> aplikasi, sehingga `NotificationListenerService` tetap terikat — penting di ROM agresif
+> seperti XOS/Infinix. Service dimulai otomatis setelah konfigurasi disimpan dan saat boot.
 
 ## Build
 
@@ -38,19 +46,15 @@ Karena format teks notif DANA/GoPay bisa berbeda, app ini merekam **semua** noti
 
 1. Aktifkan akses notifikasi (langkah 2 di atas).
 2. Lakukan **1 transaksi kecil** ke QRIS kamu (atau minta orang transfer receh).
-3. Buka app → **Refresh log** → cari baris yang diawali dengan package provider kamu:
-   - DANA Bisnis: `[id.dana.kasir]` (atau `[id.dana]`)
-   - GoPay Merchant: `[com.gojek.gopaymerchant]`
-   - InterActive QRIS: `[com.interactive.qrisid]`
-4. Lihat teks aslinya, mis. `[com.interactive.qrisid] Pembayaran QRIS sebesar Rp 50.347 ... telah diterima`.
+3. Buka app → **Refresh log** → cari baris yang diawali dengan package DANA:
+   - DANA: `[id.dana]`
+4. Lihat teks aslinya, mis. `[id.dana] Rp1.000 diterima DANA Bisnis.`.
 5. Kalau nominal tidak terbaca / package berbeda, sesuaikan di **`app/.../Providers.kt`**:
    - `packageNames` → sesuai yang muncul di log.
-   - `incomingKeywords` → kata kunci yang ada di notif uang masuk.
+   - `paymentPattern` → regex notif "uang masuk" (grup 1 = nominal).
    - `AmountParser` → sudah mendukung `Rp`, `IDR`, dan `sebesar Rp`.
 
-> **Catatan penting:** package name di atas sudah diverifikasi, TAPI **format teks notif
-> DANA Kasir & GoPay Merchant belum diverifikasi publik**. Referensi format yang terbukti
-> baru untuk InterActive QRIS (lihat github.com/suriyadi15/qrishook). Wajib cek via mode debug.
+> **Catatan:** package `id.dana` dan pola `Rp<nominal> diterima` sudah diverifikasi dari HP.
 
 ## Cara kerja singkat
 
@@ -59,7 +63,8 @@ Notif masuk → catat ke log debug
    → kalau dari provider aktif & mengandung kata "uang masuk"
    → parse nominal (Rp50.347 → 50347)
    → POST ke <server>/api/notif (header X-API-Key)
-   → gagal? masuk antrean (Outbox), dicoba ulang saat listener terhubung lagi
+   → gagal? masuk antrean (Outbox), dicoba ulang saat listener/foreground service
+     aktif lagi, dan secara periodik (±15 menit) lewat WorkManager saat online
 ```
 
 ## Keamanan

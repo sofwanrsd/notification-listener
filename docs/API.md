@@ -1,4 +1,4 @@
-# API Reference — DANA QRIS Gateway
+# API Reference — Notification Listener
 
 Base URL (lokal): `http://localhost:3000`
 Base URL (produksi): `https://<project>.vercel.app`
@@ -7,8 +7,20 @@ Semua request/response memakai `Content-Type: application/json`.
 
 Ada 2 kelompok endpoint:
 
-- **Publik / internal kamu** — dipakai sistem order/kasir kamu (`/api/orders`, `/api/orders/:id`).
+- **Merchant / internal kamu** — dipakai sistem order/kasir kamu (`/api/orders`, `/api/orders/:id`, rekonsiliasi). Bisa dilindungi merchant key.
 - **Khusus HP** — dipakai aplikasi Android listener (`/api/notif`). Dilindungi API key.
+
+> **Provider:** saat ini gateway **hanya** mendukung **DANA** (`dana_bisnis`). Nilai `provider` lain akan ditolak `400`.
+
+---
+
+## Auth Merchant (opsional)
+
+Endpoint order (`POST /api/orders`, `GET /api/orders`, `POST /api/orders/:id/replay-webhook`)
+dilindungi **opsional** lewat env `MERCHANT_API_KEY`:
+
+- Bila `MERCHANT_API_KEY` **diset**, request WAJIB membawa header `X-Merchant-Key: <nilai ini>`. Jika tidak cocok → `401`.
+- Bila **kosong/tidak diset**, endpoint terbuka tanpa auth (praktis untuk development/demo lokal).
 
 ---
 
@@ -19,6 +31,7 @@ Order otomatis kedaluwarsa dalam **10 menit** kalau belum dibayar.
 
 ```
 POST /api/orders
+Header: X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
 ```
 
 **Request body**
@@ -27,7 +40,7 @@ POST /api/orders
 |---------------|--------|-------|------------|
 | `amount`      | number | ✅    | Harga dasar dalam rupiah (bilangan bulat > 0) |
 | `note`        | string | —     | Keterangan order (mis. "Order #123 - Kopi") |
-| `provider`    | string | —     | `dana_bisnis`, `gopay_merchant`, atau `ANY` (default) |
+| `provider`    | string | —     | `dana_bisnis` atau `ANY` (default). DANA satu-satunya provider yang didukung. |
 | `callbackUrl` | string | —     | URL webhook web utama; dipanggil saat order LUNAS (lihat `INTEGRATION.md`) |
 | `redirectUrl` | string | —     | URL tujuan redirect customer setelah bayar (dipakai halaman `/pay`) |
 
@@ -73,6 +86,7 @@ curl -X POST http://localhost:3000/api/orders \
 > QR dinamis dibuat dari env **`QRIS_STATIC`** (QRIS statis merchant). Bila belum diset, `qris` = `null` dan order tetap dibuat (customer bayar manual sesuai `amount`).
 
 **Error**
+- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
 - `400` — `amount` tidak valid / `provider` tidak dikenal.
 - `409` — gagal membuat nominal unik (terlalu banyak order aktif dengan harga dasar sama).
 
@@ -116,7 +130,82 @@ Status di-refresh otomatis (order PENDING yang lewat waktu jadi `EXPIRED` saat d
 
 ---
 
-## 3. Kirim Notifikasi (khusus HP)
+## 3. Daftar Order (rekonsiliasi)
+
+Ambil hingga **100 order terakhir**, diurutkan `created_at` menurun. Berguna untuk dashboard/rekonsiliasi.
+
+```
+GET /api/orders
+Header: X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
+```
+
+**Contoh**
+
+```bash
+curl http://localhost:3000/api/orders \
+  -H "X-Merchant-Key: rahasia-merchant"
+```
+
+**Response `200`**
+
+```json
+{
+  "orders": [
+    {
+      "id": "b1e2...-uuid",
+      "amount": 50347,
+      "baseAmount": 50000,
+      "status": "PAID",
+      "provider": "ANY",
+      "createdAt": "2026-08-20T10:00:00.000Z",
+      "expiresAt": "2026-08-20T10:10:00.000Z",
+      "paidAt": "2026-08-20T10:03:12.000Z",
+      "callbackStatus": "SENT"
+    }
+  ]
+}
+```
+
+`callbackStatus`: `SENT` | `FAILED` | `null` (belum ada callback / belum lunas).
+
+**Error**
+- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
+
+---
+
+## 4. Kirim Ulang Webhook (replay)
+
+Kirim ulang webhook `order.paid` untuk order yang sudah **PAID** dan punya `callbackUrl`.
+Berguna bila web utama sempat down saat webhook pertama dikirim.
+
+```
+POST /api/orders/:id/replay-webhook
+Header: X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
+```
+
+**Contoh**
+
+```bash
+curl -X POST http://localhost:3000/api/orders/b1e2...-uuid/replay-webhook \
+  -H "X-Merchant-Key: rahasia-merchant"
+```
+
+**Response `200`**
+
+```json
+{ "ok": true, "callbackStatus": "SENT" }
+```
+
+`callbackStatus` juga di-update di DB (`SENT` / `FAILED`).
+
+**Error**
+- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
+- `404` — order tidak ditemukan.
+- `400` — order belum `PAID`, atau tidak punya `callbackUrl`.
+
+---
+
+## 5. Kirim Notifikasi (khusus HP)
 
 Dipanggil oleh **aplikasi Android** setiap kali ada notif pembayaran masuk.
 Server akan mencocokkan `amount` dengan order `PENDING` dan menandainya `PAID`.
@@ -131,7 +220,7 @@ Header: X-API-Key: <LISTENER_API_KEY>
 | Field           | Tipe   | Wajib | Keterangan |
 |-----------------|--------|-------|------------|
 | `amount`        | number | ✅    | Nominal yang terbaca dari notif (bilangan bulat) |
-| `provider`      | string | —     | `dana_bisnis` / `gopay_merchant` (asal notif) |
+| `provider`      | string | —     | `dana_bisnis` (asal notif) |
 | `rawText`       | string | —     | Teks mentah notif (buat audit/debug) |
 | `transactionId` | string | —     | ID transaksi bila ada (untuk dedup lebih akurat) |
 
@@ -167,5 +256,6 @@ curl -X POST http://localhost:3000/api/notif \
 ## Catatan Keamanan
 
 - `LISTENER_API_KEY` **wajib** dirahasiakan — hanya ada di server (env) dan di HP kamu.
+- `MERCHANT_API_KEY` (bila dipakai) hanya di server gateway & server web utama — jangan taruh di frontend/browser.
 - Jangan pernah menaruh logika keuangan penting hanya di HP; server adalah sumber kebenaran (source of truth).
 - Semua endpoint sebaiknya diakses lewat HTTPS (otomatis di Vercel).

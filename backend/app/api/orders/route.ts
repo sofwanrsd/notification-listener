@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOrder } from '@/lib/orders';
+import { createOrder, listOrders } from '@/lib/orders';
 import { isKnownProvider } from '@/lib/providers';
 import { generateDynamicQR, generateQrPng } from '@/lib/qris';
+import { checkMerchantAuth } from '@/lib/merchant-auth';
 
 export const runtime = 'nodejs';
 
 // POST /api/orders — bikin order baru + nominal unik
 export async function POST(req: NextRequest) {
+  // Auth merchant opsional: aktif hanya bila MERCHANT_API_KEY diset (lihat lib/merchant-auth.ts).
+  if (!checkMerchantAuth(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => null);
 
   const baseAmount = Number(body?.amount);
@@ -61,4 +67,26 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 409 });
   }
+}
+
+// GET /api/orders — daftar order terbaru (rekonsiliasi). Dilindungi merchant auth (opsional).
+export async function GET(req: NextRequest) {
+  if (!checkMerchantAuth(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const orders = await listOrders(100);
+  return NextResponse.json({
+    orders: orders.map((o) => ({
+      id: o.id,
+      amount: o.amount,
+      baseAmount: o.base_amount,
+      status: o.status,
+      provider: o.provider,
+      createdAt: o.created_at,
+      expiresAt: o.expires_at,
+      paidAt: o.paid_at,
+      callbackStatus: o.callback_status,
+    })),
+  });
 }
