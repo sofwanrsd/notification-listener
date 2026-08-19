@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+build/
+
+# Env & secrets — JANGAN pernah commit
+.env
+.env*.local
+*.keystore
+*.jks
+NeonCredetial.txt
+*Credential*.txt
+*credential*.txt
+
+# Android
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+*.apk
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
