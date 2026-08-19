@@ -26,7 +26,7 @@ dilindungi **opsional** lewat env `MERCHANT_API_KEY`:
 
 ## 1. Buat Order
 
-Membuat order baru dan meng-generate **nominal unik** (harga dasar + kode 100 sampai 500).
+Membuat order baru dan meng-generate **nominal unik** (harga dasar + kode 1 sampai 500).
 Order otomatis kedaluwarsa dalam **10 menit** kalau belum dibayar.
 
 ```
