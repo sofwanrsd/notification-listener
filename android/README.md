@@ -1,18 +1,14 @@
-# Android Listener — Notification Listener
+# Android Listener
 
-Aplikasi Android (Kotlin) yang membaca notifikasi pembayaran masuk dan mengirim nominalnya ke backend untuk dicocokkan dengan order.
+Aplikasi Android (Kotlin) yang membaca notifikasi pembayaran masuk lalu mengirim nominalnya ke backend untuk dicocokkan dengan order.
 
-> **Fokus DANA saja.** Versi ini hanya mendukung satu provider: **DANA** (`id.dana`),
-> dengan pola notif terverifikasi `Rp<nominal> diterima`. Provider lain sudah dihapus.
->
-> **Foreground service** menjaga proses tetap hidup: sebuah notifikasi persisten
-> berprioritas rendah ("Notification Listener aktif") membuat sistem enggan mematikan
-> aplikasi, sehingga `NotificationListenerService` tetap terikat — penting di ROM agresif
-> seperti XOS/Infinix. Service dimulai otomatis setelah konfigurasi disimpan dan saat boot.
+Fokus DANA saja. Versi ini hanya mendukung satu provider, yaitu DANA (`id.dana`), dengan pola notif terverifikasi `Rp<nominal> diterima`.
+
+Foreground service menjaga proses tetap hidup. Sebuah notifikasi persisten berprioritas rendah membuat sistem enggan mematikan aplikasi, sehingga `NotificationListenerService` tetap terikat. Ini penting di ROM agresif seperti XOS atau Infinix. Service dimulai otomatis setelah konfigurasi disimpan dan saat boot.
 
 ## Build
 
-Buka folder `android/` di **Android Studio** (Giraffe/Koala atau lebih baru), tunggu Gradle sync, lalu **Run** ke HP kamu. Atau via command line:
+Buka folder `android/` di Android Studio, tunggu Gradle sync, lalu Run ke HP kamu. Atau lewat command line:
 
 ```bash
 cd android
@@ -20,54 +16,53 @@ cd android
 # APK: app/build/outputs/apk/debug/app-debug.apk
 ```
 
-> minSdk 24 (Android 7.0). Butuh JDK 17.
+minSdk 24 (Android 7.0). Butuh JDK 17.
 
 ## Setup di HP (urutan penting)
 
-1. **Isi konfigurasi** di app: Server URL (mis. `https://xxx.vercel.app`), API Key (sama dengan `LISTENER_API_KEY` di backend), pilih **Provider aktif**, lalu **Simpan**.
-2. Tekan **"1. Izinkan akses notifikasi"** → aktifkan **DANA Gateway** di daftar. (Ini izin `NotificationListenerService`.)
-3. Tekan **"2. Abaikan optimasi baterai"** → pilih **Izinkan**.
+1. Isi konfigurasi di app. Server URL (misalnya `https://xxx.vercel.app`), API Key (sama dengan `LISTENER_API_KEY` di backend), pilih provider aktif, lalu Simpan.
+2. Tekan "1. Izinkan akses notifikasi", lalu aktifkan Notification Listener di daftar. Ini izin `NotificationListenerService`.
+3. Tekan "2. Abaikan optimasi baterai", lalu pilih Izinkan.
 
-## ⚠️ Khusus Infinix (XOS / Transsion) — WAJIB biar tidak dimatikan
+## Khusus Infinix (XOS / Transsion), wajib biar tidak dimatikan
 
-HP Infinix sangat agresif mematikan aplikasi background. Lakukan semua ini:
+HP Infinix sangat agresif mematikan aplikasi background. Lakukan semua ini.
 
-- **Kunci aplikasi di Recent Apps**: buka menu multitasking → tahan/geser kartu **DANA Gateway** → tekan ikon **gembok** (lock).
-- **Auto-launch / Autostart**: Settings → **App Management** → DANA Gateway → aktifkan **Auto-launch / Autostart**.
-- **Power Marathon / Penghemat daya**: Settings → **Battery** → matikan pembatasan untuk DANA Gateway (set ke **No restrictions / Allow background**).
-- **Phone Master / Pembersih**: buka aplikasi **Phone Master** bawaan → **Whitelist / Protect** → tambahkan DANA Gateway agar tidak ikut dibersihkan.
-- **Notifikasi**: pastikan izin notifikasi app tidak dibatasi.
+- Kunci aplikasi di Recent Apps. Buka menu multitasking, tahan kartu Notification Listener, tekan ikon gembok.
+- Autostart. Settings, App Management, Notification Listener, aktifkan Autostart.
+- Power Marathon atau penghemat daya. Settings, Battery, matikan pembatasan untuk Notification Listener.
+- Phone Master atau pembersih. Tambahkan Notification Listener ke whitelist agar tidak ikut dibersihkan.
+- Pastikan izin notifikasi app tidak dibatasi.
 
-> Nama menu bisa sedikit beda tergantim versi XOS. Intinya: **autostart ON, battery unrestricted, lock di recent, whitelist di Phone Master**.
+Nama menu bisa sedikit beda tergantung versi XOS. Intinya autostart aktif, baterai tanpa batasan, lock di recent, dan whitelist di Phone Master.
 
-## Cara menemukan format notif (mode debug)
+## Menemukan format notif (mode debug)
 
-Karena format teks notif DANA/GoPay bisa berbeda, app ini merekam **semua** notif di bagian **"Log notifikasi (debug)"**.
+Karena format teks notif bisa berbeda antar versi DANA, app merekam notif ke bagian Log notifikasi.
 
 1. Aktifkan akses notifikasi (langkah 2 di atas).
-2. Lakukan **1 transaksi kecil** ke QRIS kamu (atau minta orang transfer receh).
-3. Buka app → **Refresh log** → cari baris yang diawali dengan package DANA:
-   - DANA: `[id.dana]`
-4. Lihat teks aslinya, mis. `[id.dana] Rp1.000 diterima DANA Bisnis.`.
-5. Kalau nominal tidak terbaca / package berbeda, sesuaikan di **`app/.../Providers.kt`**:
-   - `packageNames` → sesuai yang muncul di log.
-   - `paymentPattern` → regex notif "uang masuk" (grup 1 = nominal).
-   - `AmountParser` → sudah mendukung `Rp`, `IDR`, dan `sebesar Rp`.
+2. Lakukan satu transaksi kecil ke QRIS kamu.
+3. Buka app, tekan Refresh log, cari baris yang diawali `[id.dana]`.
+4. Lihat teks aslinya, misalnya `[id.dana] Rp1.000 diterima DANA Bisnis.`.
+5. Kalau nominal tidak terbaca atau package berbeda, sesuaikan di `app/.../Providers.kt`.
+   - `packageNames` sesuai yang muncul di log.
+   - `paymentPattern` regex notif uang masuk (grup 1 adalah nominal).
+   - `AmountParser` sudah mendukung `Rp`, `IDR`, dan `sebesar Rp`.
 
-> **Catatan:** package `id.dana` dan pola `Rp<nominal> diterima` sudah diverifikasi dari HP.
+Catatan. Package `id.dana` dan pola `Rp<nominal> diterima` sudah diverifikasi dari HP.
 
 ## Cara kerja singkat
 
 ```
-Notif masuk → catat ke log debug
-   → kalau dari provider aktif & mengandung kata "uang masuk"
-   → parse nominal (Rp50.347 → 50347)
-   → POST ke <server>/api/notif (header X-API-Key)
-   → gagal? masuk antrean (Outbox), dicoba ulang saat listener/foreground service
-     aktif lagi, dan secara periodik (±15 menit) lewat WorkManager saat online
+Notif masuk, catat ke log debug
+   kalau dari provider aktif dan mengandung kata uang masuk
+   parse nominal (Rp50.347 jadi 50347)
+   POST ke <server>/api/notif (header X-API-Key)
+   kalau gagal, masuk antrean (Outbox), dicoba ulang saat listener atau
+   foreground service aktif lagi, dan secara periodik lewat WorkManager saat online
 ```
 
 ## Keamanan
 
-- API Key disimpan lokal di HP (SharedPreferences). Jangan share screenshot yang memuatnya.
-- App hanya **membaca** notif; tidak mengakses saldo atau mengontrol aplikasi e-wallet.
+- API Key disimpan lokal di HP (SharedPreferences). Jangan bagikan screenshot yang memuatnya.
+- App hanya membaca notif. Tidak mengakses saldo atau mengontrol aplikasi e-wallet.

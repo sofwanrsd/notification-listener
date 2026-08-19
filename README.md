@@ -1,20 +1,20 @@
 # Notification Listener
 
-> Unofficial QRIS payment gateway — baca notifikasi pembayaran, cocokkan via nominal unik.
+> Unofficial QRIS payment gateway, baca notifikasi pembayaran, cocokkan via nominal unik.
 
 ![License](https://img.shields.io/badge/license-MIT-blue) ![Tujuan](https://img.shields.io/badge/tujuan-edukasi-orange) ![Stack](https://img.shields.io/badge/Next.js%20%2B%20Kotlin-black)
 
-🔗 **Demo & Docs:** https://notification-listener-omega.vercel.app · [Dokumentasi API](https://notification-listener-omega.vercel.app/docs)
+**Demo & Docs:** https://notification-listener-omega.vercel.app · [Dokumentasi API](https://notification-listener-omega.vercel.app/docs)
 
-Payment gateway sederhana untuk **menerima pembayaran QRIS ke akun DANA Bisnis kamu** tanpa API resmi — dengan cara **membaca notifikasi pembayaran** di HP Android dan mencocokkannya ke order lewat **nominal unik**.
+Payment gateway sederhana untuk **menerima pembayaran QRIS ke akun DANA Bisnis kamu** tanpa API resmi, dengan cara **membaca notifikasi pembayaran** di HP Android dan mencocokkannya ke order lewat **nominal unik**.
 
-> 🎓 **Dibuat untuk edukasi.** Repo ini untuk mempelajari cara kerja payment gateway: konversi QRIS
+> **Dibuat untuk edukasi.** Repo ini untuk mempelajari cara kerja payment gateway: konversi QRIS
 > statis → dinamis (tag 54 + CRC16), pencocokan nominal unik, `NotificationListenerService` di Android,
 > webhook bertanda tangan, dan deploy serverless. **Bukan produk siap-produksi.**
 
 Proyek ini khusus **DANA** (package `id.dana`, format notif "Rp<nominal> diterima DANA Bisnis").
 
-> ⚠️ **Disclaimer**
+> **Disclaimer**
 > Proyek ini **tidak berafiliasi** dengan DANA atau penyedia QRIS mana pun.
 > Ini adalah alat **unofficial** yang hanya membaca notifikasi di HP kamu sendiri.
 > Menggunakan akun e-wallet pribadi sebagai gateway pembayaran dapat melanggar Ketentuan Layanan penyedia dan berisiko akun dibekukan. Gunakan atas risiko sendiri, untuk skala kecil/sementara. Untuk kebutuhan serius, gunakan **QRIS Merchant resmi** melalui PJP berlisensi.
@@ -28,7 +28,7 @@ Proyek ini khusus **DANA** (package `id.dana`, format notif "Rp<nominal> diterim
 3. Customer scan QR → nominal sudah terisi otomatis, tinggal bayar
 4. DANA kasih notifikasi "Rp50.347 diterima DANA Bisnis"
 5. App Android membaca notif → kirim nominal ke server
-6. Server cocokkan 50347 → order → tandai LUNAS ✅
+6. Server cocokkan 50347 → order → tandai LUNAS
 ```
 
 - **QRIS statis → dinamis** → kamu cukup sediakan 1 QRIS statis; sistem menyisipkan nominal unik ke tiap order (tag 54 + CRC16 dihitung ulang). Logika konversi di-port dari [sofwanrsd/qrisin](https://github.com/sofwanrsd/qrisin).
@@ -43,7 +43,7 @@ Proyek ini khusus **DANA** (package `id.dana`, format notif "Rp<nominal> diterim
 ```
 .
 ├── backend/     # API (Next.js) + database (Neon Postgres) → deploy ke Vercel
-├── android/     # App Kotlin: NotificationListenerService (menyusul)
+├── android/     # App Kotlin: NotificationListenerService
 └── docs/        # Dokumentasi (lihat docs/API.md)
 ```
 
@@ -83,10 +83,10 @@ curl -X POST http://localhost:3000/api/notif \
 ```
 
 Buka halaman:
-- `http://localhost:3000` — form buat order (demo/admin)
-- `http://localhost:3000/pay/<orderId>` — halaman checkout (QR + hitung mundur + status realtime)
+- `http://localhost:3000`, form buat order (demo/admin)
+- `http://localhost:3000/pay/<orderId>`, halaman checkout (QR + hitung mundur + status realtime)
 
-> **Auth order (opsional)** — `POST /api/orders` mendukung header `X-Merchant-Key`.
+> **Auth order (opsional)**, `POST /api/orders` mendukung header `X-Merchant-Key`.
 > Set env `MERCHANT_API_KEY` di server untuk mewajibkan header ini saat membuat order.
 > Bila `MERCHANT_API_KEY` kosong, endpoint tetap terbuka (mode demo).
 
@@ -112,10 +112,10 @@ Setelah dipasang, beri izin **Notification Access** untuk app, lalu pastikan
 - **Backend** → Vercel (root directory: `backend`). Env yang perlu diset:
   | Env | Wajib | Fungsi |
   |-----|-------|--------|
-  | `DATABASE_URL` | ✅ | Koneksi Neon Postgres |
-  | `LISTENER_API_KEY` | ✅ | Kunci untuk aplikasi HP (`X-API-Key`) |
-  | `QRIS_STATIC` | ✅ | QRIS statis merchant (string mentah) yang diubah jadi QR dinamis |
-  | `WEBHOOK_SECRET` | ✅ | Menandatangani webhook (HMAC) |
+  | `DATABASE_URL` | Ya | Koneksi Neon Postgres |
+  | `LISTENER_API_KEY` | Ya | Kunci untuk aplikasi HP (`X-API-Key`) |
+  | `QRIS_STATIC` | Ya | QRIS statis merchant (string mentah) yang diubah jadi QR dinamis |
+  | `WEBHOOK_SECRET` | Ya | Menandatangani webhook (HMAC) |
   | `MERCHANT_API_KEY` | disarankan | Mengunci endpoint order (`X-Merchant-Key`). **Wajib untuk deploy publik.** |
   | `CRON_SECRET` | opsional | Mengamankan cron pembersih expiry |
 - **Database** → Neon (bisa langsung, atau lewat Vercel Marketplace > Storage).
@@ -126,15 +126,15 @@ Setelah dipasang, beri izin **Notification Access** untuk app, lalu pastikan
 - **Kunci endpoint order.** Set `MERCHANT_API_KEY` di produksi supaya `POST /api/orders`, `GET /api/orders`, dan replay-webhook butuh header `X-Merchant-Key`. Tanpa ini, siapa pun yang tahu URL bisa membuat & melihat order.
 - **HP hanya membaca DANA.** Aplikasi menyaring paket notifikasi lebih dulu; isi notifikasi aplikasi lain tidak pernah dibaca atau dikirim.
 - **Verifikasi webhook.** Penerima wajib memeriksa `X-Signature` (HMAC-SHA256 dengan `WEBHOOK_SECRET`) sebelum menandai lunas.
-- **Best-effort.** Notifikasi bisa terlewat — sediakan rekonsiliasi lewat `GET /api/orders`. Untuk kebutuhan serius, gunakan QRIS Merchant resmi via PJP berlisensi.
+- **Best-effort.** Notifikasi bisa terlewat, sediakan rekonsiliasi lewat `GET /api/orders`. Untuk kebutuhan serius, gunakan QRIS Merchant resmi via PJP berlisensi.
 
 ## Kontribusi
 
-Kontribusi terbuka! Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md). Proyek ini sengaja **fokus DANA saja** — perbaikan bug, keandalan, dan dokumentasi sangat diterima. Untuk ide di luar cakupan DANA, buka **Issue** dulu untuk diskusi.
+Kontribusi terbuka! Lihat [`CONTRIBUTING.md`](CONTRIBUTING.md). Proyek ini sengaja **fokus DANA saja**, perbaikan bug, keandalan, dan dokumentasi sangat diterima. Untuk ide di luar cakupan DANA, buka **Issue** dulu untuk diskusi.
 
 ## Lisensi
 
-[MIT](LICENSE) — bebas dipakai, fork, dan modifikasi.
+[MIT](LICENSE), bebas dipakai, fork, dan modifikasi.
 
 Proyek disediakan **apa adanya, untuk tujuan edukasi**, tanpa jaminan apa pun. Penulis tidak bertanggung
 jawab atas penyalahgunaan, kehilangan dana, pembekuan akun, atau pelanggaran ketentuan layanan pihak

@@ -1,4 +1,4 @@
-# API Reference — Notification Listener
+# API Reference
 
 Base URL (lokal): `http://localhost:3000`
 Base URL (produksi): `https://<project>.vercel.app`
@@ -7,8 +7,8 @@ Semua request/response memakai `Content-Type: application/json`.
 
 Ada 2 kelompok endpoint:
 
-- **Merchant / internal kamu** — dipakai sistem order/kasir kamu (`/api/orders`, `/api/orders/:id`, rekonsiliasi). Bisa dilindungi merchant key.
-- **Khusus HP** — dipakai aplikasi Android listener (`/api/notif`). Dilindungi API key.
+- **Merchant / internal kamu**, dipakai sistem order/kasir kamu (`/api/orders`, `/api/orders/:id`, rekonsiliasi). Bisa dilindungi merchant key.
+- **Khusus HP**, dipakai aplikasi Android listener (`/api/notif`). Dilindungi API key.
 
 > **Provider:** saat ini gateway **hanya** mendukung **DANA** (`dana_bisnis`). Nilai `provider` lain akan ditolak `400`.
 
@@ -26,7 +26,7 @@ dilindungi **opsional** lewat env `MERCHANT_API_KEY`:
 
 ## 1. Buat Order
 
-Membuat order baru dan meng-generate **nominal unik** (harga dasar + kode 100–999).
+Membuat order baru dan meng-generate **nominal unik** (harga dasar + kode 100 sampai 999).
 Order otomatis kedaluwarsa dalam **10 menit** kalau belum dibayar.
 
 ```
@@ -38,11 +38,11 @@ Header: X-Merchant-Key: <MERCHANT_API_KEY>   # wajib bila MERCHANT_API_KEY diset
 
 | Field         | Tipe   | Wajib | Keterangan |
 |---------------|--------|-------|------------|
-| `amount`      | number | ✅    | Harga dasar dalam rupiah (bilangan bulat > 0) |
-| `note`        | string | —     | Keterangan order (mis. "Order #123 - Kopi") |
-| `provider`    | string | —     | `dana_bisnis` atau `ANY` (default). DANA satu-satunya provider yang didukung. |
-| `callbackUrl` | string | —     | URL webhook web utama; dipanggil saat order LUNAS (lihat `INTEGRATION.md`) |
-| `redirectUrl` | string | —     | URL tujuan redirect customer setelah bayar (dipakai halaman `/pay`) |
+| `amount`      | number | Ya    | Harga dasar dalam rupiah (bilangan bulat > 0) |
+| `note`        | string | Tidak | Keterangan order (mis. "Order #123 - Kopi") |
+| `provider`    | string | Tidak | `dana_bisnis` atau `ANY` (default). DANA satu-satunya provider yang didukung. |
+| `callbackUrl` | string | Tidak | URL webhook web utama; dipanggil saat order LUNAS (lihat `INTEGRATION.md`) |
+| `redirectUrl` | string | Tidak | URL tujuan redirect customer setelah bayar (dipakai halaman `/pay`) |
 
 **Contoh**
 
@@ -75,7 +75,7 @@ curl -X POST http://localhost:3000/api/orders \
 
 `payUrl` = halaman checkout hosted (QR + hitung mundur + status realtime). Web utama boleh redirect customer ke sana, atau menampilkan `qris.image` sendiri.
 
-➡️ Tampilkan **`qris.image`** (gambar QR dinamis) ke customer — nominalnya sudah terkunci ke `amount`, jadi customer tinggal scan tanpa mengetik jumlah.
+Tampilkan **`qris.image`** (gambar QR dinamis) ke customer, nominalnya sudah terkunci ke `amount`, jadi customer tinggal scan tanpa mengetik jumlah.
 
 | Field       | Keterangan |
 |-------------|------------|
@@ -86,9 +86,9 @@ curl -X POST http://localhost:3000/api/orders \
 > QR dinamis dibuat dari env **`QRIS_STATIC`** (QRIS statis merchant). Bila belum diset, `qris` = `null` dan order tetap dibuat (customer bayar manual sesuai `amount`).
 
 **Error**
-- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
-- `400` — `amount` tidak valid / `provider` tidak dikenal.
-- `409` — gagal membuat nominal unik (terlalu banyak order aktif dengan harga dasar sama).
+- `401`, `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
+- `400`, `amount` tidak valid / `provider` tidak dikenal.
+- `409`, gagal membuat nominal unik (terlalu banyak order aktif dengan harga dasar sama).
 
 ---
 
@@ -123,10 +123,10 @@ curl http://localhost:3000/api/orders/b1e2...-uuid
 `status` bernilai salah satu: `PENDING` | `PAID` | `EXPIRED`.
 Status di-refresh otomatis (order PENDING yang lewat waktu jadi `EXPIRED` saat dibaca).
 
-> **Tips polling:** frontend cukup polling endpoint ini tiap 3–5 detik sampai `status` jadi `PAID` atau `EXPIRED`.
+> **Tips polling:** frontend cukup polling endpoint ini tiap 3 sampai 5 detik sampai `status` jadi `PAID` atau `EXPIRED`.
 
 **Error**
-- `404` — order tidak ditemukan.
+- `404`, order tidak ditemukan.
 
 ---
 
@@ -169,7 +169,7 @@ curl http://localhost:3000/api/orders \
 `callbackStatus`: `SENT` | `FAILED` | `null` (belum ada callback / belum lunas).
 
 **Error**
-- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
+- `401`, `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
 
 ---
 
@@ -199,9 +199,9 @@ curl -X POST http://localhost:3000/api/orders/b1e2...-uuid/replay-webhook \
 `callbackStatus` juga di-update di DB (`SENT` / `FAILED`).
 
 **Error**
-- `401` — `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
-- `404` — order tidak ditemukan.
-- `400` — order belum `PAID`, atau tidak punya `callbackUrl`.
+- `401`, `X-Merchant-Key` salah / tidak ada (hanya bila `MERCHANT_API_KEY` diset).
+- `404`, order tidak ditemukan.
+- `400`, order belum `PAID`, atau tidak punya `callbackUrl`.
 
 ---
 
@@ -219,10 +219,10 @@ Header: X-API-Key: <LISTENER_API_KEY>
 
 | Field           | Tipe   | Wajib | Keterangan |
 |-----------------|--------|-------|------------|
-| `amount`        | number | ✅    | Nominal yang terbaca dari notif (bilangan bulat) |
-| `provider`      | string | —     | `dana_bisnis` (asal notif) |
-| `rawText`       | string | —     | Teks mentah notif (buat audit/debug) |
-| `transactionId` | string | —     | ID transaksi bila ada (untuk dedup lebih akurat) |
+| `amount`        | number | Ya    | Nominal yang terbaca dari notif (bilangan bulat) |
+| `provider`      | string | Tidak | `dana_bisnis` (asal notif) |
+| `rawText`       | string | Tidak | Teks mentah notif (buat audit/debug) |
+| `transactionId` | string | Tidak | ID transaksi bila ada (untuk dedup lebih akurat) |
 
 **Contoh**
 
@@ -246,8 +246,8 @@ curl -X POST http://localhost:3000/api/notif \
 | `orderId`   | ID order yang dilunasi, atau `null` bila tak ada yang cocok |
 
 **Error**
-- `401` — `X-API-Key` salah / tidak ada.
-- `400` — `amount` tidak valid.
+- `401`, `X-API-Key` salah / tidak ada.
+- `400`, `amount` tidak valid.
 
 > **Idempotency:** notif dianggap duplikat berdasarkan `transactionId` (bila ada) atau hash dari `provider + amount + rawText`. Notif dobel tidak akan melunasi order dua kali.
 
@@ -255,7 +255,7 @@ curl -X POST http://localhost:3000/api/notif \
 
 ## Catatan Keamanan
 
-- `LISTENER_API_KEY` **wajib** dirahasiakan — hanya ada di server (env) dan di HP kamu.
-- `MERCHANT_API_KEY` (bila dipakai) hanya di server gateway & server web utama — jangan taruh di frontend/browser.
+- `LISTENER_API_KEY` **wajib** dirahasiakan, hanya ada di server (env) dan di HP kamu.
+- `MERCHANT_API_KEY` (bila dipakai) hanya di server gateway & server web utama, jangan taruh di frontend/browser.
 - Jangan pernah menaruh logika keuangan penting hanya di HP; server adalah sumber kebenaran (source of truth).
 - Semua endpoint sebaiknya diakses lewat HTTPS (otomatis di Vercel).

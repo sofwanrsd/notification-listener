@@ -1,4 +1,4 @@
-# Panduan Integrasi — Menghubungkan Web Utama (mis. web utama Anda)
+# Panduan Integrasi
 
 Gateway ini berdiri sendiri (headless). Web utama kamu memakainya lewat HTTP API,
 mirip memakai Midtrans/Xendit tapi milik sendiri.
@@ -19,14 +19,14 @@ Endpoint order dilindungi **opsional** lewat env `MERCHANT_API_KEY` di sisi gate
   `POST /api/orders/:id/replay-webhook` WAJIB membawa header `X-Merchant-Key: <MERCHANT_API_KEY>`.
 - Bila kosong, endpoint terbuka tanpa auth (praktis untuk development/demo lokal).
 
-Simpan `MERCHANT_API_KEY` hanya di server web utama — jangan di frontend/browser.
+Simpan `MERCHANT_API_KEY` hanya di server web utama, jangan di frontend/browser.
 
 ---
 
 ## Alur singkat
 
 ```
-Web utama (web utama)                Gateway                         Customer
+Web utama                            Gateway                         Customer
    │  POST /api/orders  ───────────►│                                │
    │  ◄── orderId, amount, payUrl,  │                                │
    │      qris.image                │                                │
@@ -40,7 +40,7 @@ Web utama (web utama)                Gateway                         Customer
 
 ---
 
-## Opsi A — Webhook (push, direkomendasikan)
+## Opsi A, Webhook (push, direkomendasikan)
 
 ### 1. Buat order dari server web utama
 
@@ -119,7 +119,7 @@ Jika valid → tandai invoice web utama LUNAS. Balas `200 OK`.
 
 ---
 
-## Opsi B — Polling (pull, cadangan/sederhana)
+## Opsi B, Polling (pull, cadangan/sederhana)
 
 Setelah membuat order, web utama cek status berkala:
 
@@ -131,7 +131,7 @@ GET /api/orders/{orderId}
 { "orderId": "uuid", "amount": 50347, "status": "PENDING", "expiresAt": "..." }
 ```
 
-`status`: `PENDING` | `PAID` | `EXPIRED`. Polling tiap 3–5 detik sampai berubah.
+`status`: `PENDING` | `PAID` | `EXPIRED`. Polling tiap 3 sampai 5 detik sampai berubah.
 
 ---
 
@@ -165,4 +165,4 @@ Respons `200`: `{ "ok": true, "callbackStatus": "SENT" }`. Error `400` bila orde
 - **Idempotensi di sisi web utama**: webhook/polling bisa terjadi >1x untuk order sama. Pastikan menandai lunas hanya sekali (cek status invoice sebelum update).
 - **Kaitkan order** lewat `orderId` (atau taruh nomor invoice di `note`).
 - **Expiry 10 menit**: order tak dibayar otomatis `EXPIRED`.
-- **Keamanan**: `WEBHOOK_SECRET` hanya di server gateway & server web utama — jangan di frontend.
+- **Keamanan**: `WEBHOOK_SECRET` hanya di server gateway & server web utama, jangan di frontend.
