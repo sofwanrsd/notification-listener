@@ -5,18 +5,16 @@ import PayStatus from './PayStatus';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function rupiah(n: number): string {
-  return 'Rp' + n.toLocaleString('id-ID');
-}
-
 export default async function PayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const order = await getOrder(id);
 
   if (!order) {
     return (
-      <main style={{ textAlign: 'center', paddingTop: 40 }}>
-        <h1>Order tidak ditemukan</h1>
+      <main className="wrap wrap-narrow" style={{ padding: '90px 24px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: 26 }}>Tagihan tidak ditemukan</h1>
+        <p className="muted" style={{ marginTop: 8 }}>Tautannya mungkin salah atau sudah dihapus.</p>
+        <a href="/" className="btn" style={{ marginTop: 20 }}>Kembali</a>
       </main>
     );
   }
@@ -31,22 +29,34 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
     }
   }
 
+  const formatted = order.amount.toLocaleString('id-ID');
+  const code = formatted.slice(-3);
+  const prefix = formatted.slice(0, -3);
+
   return (
-    <main style={{ textAlign: 'center' }}>
-      <h1 style={{ marginBottom: 4 }}>Pembayaran QRIS</h1>
-      {order.note && <p style={{ color: '#666', marginTop: 0 }}>{order.note}</p>}
+    <main className="wrap wrap-narrow" style={{ padding: '48px 24px 0' }}>
+      <div className="card" style={{ overflow: 'hidden' }}>
+        <div className="card-pad" style={{ textAlign: 'center', paddingBottom: 20 }}>
+          <div className="eyebrow">Pembayaran QRIS</div>
+          {order.note && <div style={{ marginTop: 10, color: 'var(--ink-soft)', fontSize: 15 }}>{order.note}</div>}
+          <div className="amount" style={{ fontSize: 42, fontWeight: 600, marginTop: 12, letterSpacing: '-0.02em' }}>
+            <span className="rp" style={{ fontSize: 24 }}>Rp</span>{prefix}<span className="code">{code}</span>
+          </div>
+          <p className="muted" style={{ fontSize: 13, marginTop: 8, marginBottom: 0 }}>
+            Bayar <b>persis</b> nominal ini. Angka <span style={{ color: 'var(--brand-2)' }}>{code}</span> adalah kode unik pesananmu.
+          </p>
+        </div>
 
-      <div style={{ fontSize: 32, fontWeight: 700, margin: '12px 0' }}>{rupiah(order.amount)}</div>
-      <p style={{ color: '#888', marginTop: -8, fontSize: 13 }}>
-        Bayar <b>persis</b> nominal di atas (termasuk kode unik {order.unique_code}).
+        <PayStatus
+          orderId={order.id}
+          initialStatus={order.status}
+          expiresAt={order.expires_at}
+          qrImage={qrImage}
+        />
+      </div>
+      <p className="muted" style={{ textAlign: 'center', fontSize: 12, marginTop: 16 }}>
+        Ditenagai Notification Listener
       </p>
-
-      <PayStatus
-        orderId={order.id}
-        initialStatus={order.status}
-        expiresAt={order.expires_at}
-        qrImage={qrImage}
-      />
     </main>
   );
 }

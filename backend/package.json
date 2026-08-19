@@ -1,5 +1,5 @@
 {
-  "name": "dana-qris-gateway-backend",
+  "name": "notification-listener-backend",
   "version": "0.1.0",
   "private": true,
   "description": "Backend API untuk DANA QRIS payment gateway (unofficial) — matching pembayaran via nominal unik",

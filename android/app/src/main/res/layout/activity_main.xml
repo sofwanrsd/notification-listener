@@ -1,109 +1,260 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/canvas"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="DANA Gateway Listener"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:paddingBottom="8dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="16dp">
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                app:cardBackgroundColor="@color/brand"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="NL"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notification Listener"
+                    android:textColor="@color/ink"
+                    android:textStyle="bold"
+                    android:textSize="18sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Listener pembayaran DANA"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Status -->
         <TextView
             android:id="@+id/statusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Status: -"
-            android:paddingBottom="12dp" />
+            android:textColor="@color/ink_soft"
+            android:textSize="14sp"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="14dp"
+            android:background="@color/white"
+            android:layout_marginBottom="16dp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Server URL" />
-        <EditText
-            android:id="@+id/serverUrl"
+        <!-- Card: Koneksi -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="https://xxx.vercel.app"
-            android:inputType="textUri" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/line"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="API Key (LISTENER_API_KEY)" />
-        <EditText
-            android:id="@+id/apiKey"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Koneksi ke server"
+                    android:textColor="@color/ink"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:paddingBottom="12dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Server URL"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="10dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/serverUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textUri" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="API Key"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    app:passwordToggleEnabled="true"
+                    android:layout_marginBottom="6dp">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/apiKey"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Provider"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp"
+                    android:paddingTop="8dp" />
+                <Spinner
+                    android:id="@+id/providerSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp" />
+
+                <Switch
+                    android:id="@+id/forwardingSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Kirim ke server saat ada pembayaran"
+                    android:textColor="@color/ink_soft"
+                    android:paddingVertical="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/saveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Simpan pengaturan"
+                    app:cornerRadius="12dp"
+                    android:layout_marginTop="4dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card: Izin & keandalan -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="rahasia panjang"
-            android:inputType="textPassword" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/line"
+            app:strokeWidth="1dp"
+            android:layout_marginBottom="16dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Provider aktif"
-            android:paddingTop="8dp" />
-        <Spinner
-            android:id="@+id/providerSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
 
-        <Switch
-            android:id="@+id/forwardingSwitch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Aktifkan kirim ke server"
-            android:paddingTop="8dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Izin &amp; keandalan"
+                    android:textColor="@color/ink"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:paddingBottom="12dp" />
 
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Simpan pengaturan"
-            android:layout_marginTop="8dp" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/notifAccessButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="1. Izinkan akses notifikasi"
+                    app:cornerRadius="12dp" />
 
-        <Button
-            android:id="@+id/notifAccessButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="1. Izinkan akses notifikasi" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/batteryButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="2. Abaikan optimasi baterai"
+                    app:cornerRadius="12dp" />
 
-        <Button
-            android:id="@+id/batteryButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="2. Abaikan optimasi baterai" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Di HP Infinix/XOS: aktifkan juga Autostart agar tetap jalan setelah restart."
+                    android:textColor="@color/muted"
+                    android:textSize="12sp"
+                    android:paddingTop="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Log notifikasi (debug):"
-            android:textStyle="bold"
-            android:paddingTop="16dp" />
-
-        <Button
-            android:id="@+id/refreshButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Refresh log" />
-
-        <TextView
-            android:id="@+id/debugLog"
+        <!-- Card: Log -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:textSize="11sp"
-            android:paddingTop="8dp"
-            android:text="(belum ada notif)" />
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp"
+            app:strokeColor="@color/line"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Log notifikasi"
+                        android:textColor="@color/ink"
+                        android:textStyle="bold"
+                        android:textSize="15sp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/refreshButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Refresh" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/debugLog"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="monospace"
+                    android:textSize="11sp"
+                    android:textColor="@color/ink_soft"
+                    android:paddingTop="6dp"
+                    android:text="(belum ada notif)" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
 
