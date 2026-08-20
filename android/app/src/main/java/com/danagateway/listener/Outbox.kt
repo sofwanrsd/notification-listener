@@ -33,6 +33,7 @@ object Outbox {
 
         val server = Settings.serverUrl(ctx)
         val apiKey = Settings.apiKey(ctx)
+        val mode = Settings.mode(ctx)
         if (server.isBlank() || apiKey.isBlank()) return
 
         val remaining = JSONArray()
@@ -40,7 +41,7 @@ object Outbox {
             val o = arr.getJSONObject(i)
             val txId = if (o.isNull("txId")) null else o.optString("txId")
             val ok = ApiClient.postNotif(
-                server, apiKey,
+                server, mode, apiKey,
                 o.getString("provider"), o.getInt("amount"), o.optString("rawText"), txId,
             )
             if (!ok) remaining.put(o)

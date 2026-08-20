@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var apiKey: EditText
     private lateinit var providerSpinner: Spinner
     private lateinit var forwardingSwitch: Switch
+    private lateinit var modeSpinner: Spinner
     private lateinit var statusText: TextView
     private lateinit var debugLog: TextView
 
@@ -41,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         apiKey = findViewById(R.id.apiKey)
         providerSpinner = findViewById(R.id.providerSpinner)
         forwardingSwitch = findViewById(R.id.forwardingSwitch)
+        modeSpinner = findViewById(R.id.modeSpinner)
         statusText = findViewById(R.id.statusText)
         debugLog = findViewById(R.id.debugLog)
 
@@ -49,12 +51,19 @@ class MainActivity : AppCompatActivity() {
         providerSpinner.adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, names)
 
+        // Isi spinner mode (tujuan pengiriman).
+        val modeLabels = listOf("Taveve (integrasi)", "Standalone")
+        modeSpinner.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, modeLabels)
+
         // Muat pengaturan tersimpan.
         serverUrl.setText(Settings.serverUrl(this))
         apiKey.setText(Settings.apiKey(this))
         forwardingSwitch.isChecked = Settings.forwardingEnabled(this)
         val activeIdx = Providers.ALL.indexOfFirst { it.id == Settings.activeProvider(this) }
         if (activeIdx >= 0) providerSpinner.setSelection(activeIdx)
+        val modeIdx = Settings.MODES.indexOf(Settings.mode(this))
+        if (modeIdx >= 0) modeSpinner.setSelection(modeIdx)
 
         findViewById<Button>(R.id.saveButton).setOnClickListener { saveSettings() }
         findViewById<Button>(R.id.notifAccessButton).setOnClickListener {
@@ -88,12 +97,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun saveSettings() {
         val provider = Providers.ALL[providerSpinner.selectedItemPosition]
+        val mode = Settings.MODES.getOrElse(modeSpinner.selectedItemPosition) { Settings.MODE_TAVEVE }
         Settings.save(
             this,
             serverUrl.text.toString(),
             apiKey.text.toString(),
             provider.id,
             forwardingSwitch.isChecked,
+            mode,
         )
         Toast.makeText(this, "Tersimpan", Toast.LENGTH_SHORT).show()
         updateStatus()

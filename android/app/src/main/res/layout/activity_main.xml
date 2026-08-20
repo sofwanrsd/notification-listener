@@ -137,6 +137,19 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="4dp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mode tujuan"
+                    android:textColor="@color/muted"
+                    android:textSize="13sp"
+                    android:paddingTop="8dp" />
+                <Spinner
+                    android:id="@+id/modeSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp" />
+
                 <Switch
                     android:id="@+id/forwardingSwitch"
                     android:layout_width="match_parent"

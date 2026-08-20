@@ -65,6 +65,7 @@ class PaymentNotificationListener : NotificationListenerService() {
 
         val server = Settings.serverUrl(ctx)
         val apiKey = Settings.apiKey(ctx)
+        val mode = Settings.mode(ctx)
         if (server.isBlank() || apiKey.isBlank()) {
             DebugLog.add("⚠️ Server/API key belum diisi")
             return
@@ -73,7 +74,7 @@ class PaymentNotificationListener : NotificationListenerService() {
         // Dedup sederhana; server juga melakukan dedup.
         val txId = "${sbn.postTime}-$amount"
         scope.launch {
-            val ok = ApiClient.postNotifWithRetry(server, apiKey, provider.id, amount, combined.trim(), txId)
+            val ok = ApiClient.postNotifWithRetry(server, mode, apiKey, provider.id, amount, combined.trim(), txId)
             if (ok) {
                 DebugLog.add("✅ Terkirim: Rp$amount (${provider.id})")
             } else {
